@@ -3,7 +3,6 @@
 Automated installer for Google Chrome, Slack, and Opera on Linux Mint (and other Ubuntu-based distributions). The script must be run with root privileges and handles downloads, installation, logging, and progress display for you.
 
 ## Project Structure
-
 ```
 .
 ├── install_apps.sh         # Main entry point
