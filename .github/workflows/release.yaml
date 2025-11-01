@@ -1,0 +1,78 @@
+name: Release Debian Package
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate release version
+        id: version
+        run: |
+          VERSION="v$(date -u +'%Y%m%d%H%M%S')"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build Debian package
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE_NAME: axxon-download-script
+          INSTALL_DIR: opt/axxon-download-script
+          BINARY_NAME: axxon-download
+          MAINTAINER: ${{ github.repository_owner }}
+        run: |
+          set -euxo pipefail
+
+          BUILD_ROOT="build/${PACKAGE_NAME}"
+          CONTROL_DIR="$BUILD_ROOT/DEBIAN"
+          INSTALL_ROOT="$BUILD_ROOT/$INSTALL_DIR"
+          BIN_DIR="$BUILD_ROOT/usr/local/bin"
+
+          rm -rf "$BUILD_ROOT" dist
+          mkdir -p "$CONTROL_DIR" "$INSTALL_ROOT" "$BIN_DIR" dist
+
+          cp install_apps.sh "$INSTALL_ROOT/"
+          cp -r lib "$INSTALL_ROOT/"
+          chmod +x "$INSTALL_ROOT/install_apps.sh"
+
+          cat <<EOF > "$BIN_DIR/$BINARY_NAME"
+#!/bin/bash
+exec /$INSTALL_DIR/install_apps.sh "$@"
+EOF
+          chmod +x "$BIN_DIR/$BINARY_NAME"
+
+          cat <<EOF > "$CONTROL_DIR/control"
+Package: $PACKAGE_NAME
+Version: ${VERSION#v}
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: $MAINTAINER
+Depends: wget, apt, dpkg
+Description: Automated installer for Chrome, Slack, and Opera on Ubuntu-based systems.
+EOF
+
+          dpkg-deb --build "$BUILD_ROOT" "dist/${PACKAGE_NAME}_${VERSION#v}_all.deb"
+
+      - name: Upload Debian package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-package
+          path: dist/*.deb
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: dist/*.deb
