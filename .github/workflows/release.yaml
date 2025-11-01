@@ -2,8 +2,8 @@ name: Create Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -17,6 +17,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Calculate release metadata
+        id: meta
+        run: |
+          DATE_TAG="$(date -u +'%Y.%m.%d')"
+          TAG_NAME="auto-v${DATE_TAG}-${GITHUB_RUN_NUMBER}"
+          RELEASE_NAME="Automated Release ${TAG_NAME}"
+          echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "release_name=${RELEASE_NAME}" >> "$GITHUB_OUTPUT"
+
       - name: Set up workspace paths
         run: |
           mkdir -p dist
@@ -29,6 +38,8 @@ jobs:
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.meta.outputs.tag_name }}
+          name: ${{ steps.meta.outputs.release_name }}
           files: |
             dist/axx-install-scripts.tar.gz
             dist/axx-install-scripts.zip
