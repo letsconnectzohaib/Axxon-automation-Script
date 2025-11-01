@@ -1,37 +1,43 @@
-name: Create Release
+name: Build Debian Package and Release
 
 on:
   push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
-  release:
-    name: Build assets and publish release
+  build-and-release:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Calculate release metadata
+      - name: Set up Node for changelog (optional)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Compute metadata
         id: meta
         run: |
-          DATE_TAG="$(date -u +'%Y.%m.%d')"
+          DATE_TAG="$(date -u +'%Y%m%d')"
+          SHORT_SHA="${GITHUB_SHA::7}"
           PACKAGE_NAME="axxon-installer"
           PACKAGE_VERSION="${DATE_TAG}.${GITHUB_RUN_NUMBER}"
-          TAG_NAME="auto-v${DATE_TAG}-${GITHUB_RUN_NUMBER}"
-          RELEASE_NAME="Automated Release ${TAG_NAME}"
-          echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
-          echo "release_name=${RELEASE_NAME}" >> "$GITHUB_OUTPUT"
+          TAG_NAME="v${PACKAGE_VERSION}"
+          RELEASE_NAME="Axxon Installer ${PACKAGE_VERSION}"
           echo "package_name=${PACKAGE_NAME}" >> "$GITHUB_OUTPUT"
           echo "package_version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
-
-      - name: Set up workspace paths
-        run: |
-          mkdir -p dist
+          echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "release_name=${RELEASE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Build Debian package
         run: |
@@ -43,14 +49,14 @@ jobs:
           INSTALL_PREFIX="$PKG_ROOT/opt/${PACKAGE_NAME}"
           BIN_DIR="$PKG_ROOT/usr/local/bin"
 
-          rm -rf "$PKG_ROOT"
+          rm -rf "$DIST_DIR"
           mkdir -p "$INSTALL_PREFIX" "$BIN_DIR" "$PKG_ROOT/DEBIAN"
 
           cp install_apps.sh "$INSTALL_PREFIX/install_apps.sh"
           cp -r lib "$INSTALL_PREFIX/lib"
           cp README.md "$INSTALL_PREFIX/README.md"
 
-          cat <<'EOF' > "$BIN_DIR/${PACKAGE_NAME}"
+          cat <<EOF > "$BIN_DIR/${PACKAGE_NAME}"
 #!/bin/bash
 exec /opt/${PACKAGE_NAME}/install_apps.sh "$@"
 EOF
@@ -73,14 +79,33 @@ Description: Automated installer for Chrome, Slack, and Opera on Linux Mint.
  and provides a launcher at /usr/local/bin/${PACKAGE_NAME}.
 EOF
 
-          dpkg-deb --build "$PKG_ROOT" "${DIST_DIR}/${PACKAGE_NAME}_${PACKAGE_VERSION}_all.deb"
+          dpkg-deb --build "$PKG_ROOT" "$DIST_DIR/${PACKAGE_NAME}_${PACKAGE_VERSION}_all.deb"
 
-      - name: Upload release assets
+      - name: Create Git tag
+        run: |
+          TAG_NAME="${{ steps.meta.outputs.tag_name }}"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          SHORT_SHA="${{ steps.meta.outputs.short_sha }}"
+          cat <<EOF > release-notes.md
+## What's Included
+
+- Debian package build for commit ${SHORT_SHA}
+- Automated installer for Chrome, Slack, and Opera
+EOF
+
+      - name: Publish GitHub release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.meta.outputs.tag_name }}
           name: ${{ steps.meta.outputs.release_name }}
-          files: |
-            dist/${{ steps.meta.outputs.package_name }}_${{ steps.meta.outputs.package_version }}_all.deb
+          body_path: release-notes.md
+          files: dist/${{ steps.meta.outputs.package_name }}_${{ steps.meta.outputs.package_version }}_all.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
