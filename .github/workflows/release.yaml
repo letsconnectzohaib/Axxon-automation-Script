@@ -21,19 +21,60 @@ jobs:
         id: meta
         run: |
           DATE_TAG="$(date -u +'%Y.%m.%d')"
+          PACKAGE_NAME="axxon-installer"
+          PACKAGE_VERSION="${DATE_TAG}.${GITHUB_RUN_NUMBER}"
           TAG_NAME="auto-v${DATE_TAG}-${GITHUB_RUN_NUMBER}"
           RELEASE_NAME="Automated Release ${TAG_NAME}"
           echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
           echo "release_name=${RELEASE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "package_name=${PACKAGE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "package_version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Set up workspace paths
         run: |
           mkdir -p dist
 
-      - name: Package installer
+      - name: Build Debian package
         run: |
-          tar czf dist/axx-install-scripts.tar.gz install_apps.sh lib README.md .gitignore
-          zip -r dist/axx-install-scripts.zip install_apps.sh lib README.md .gitignore
+          set -euo pipefail
+          DIST_DIR="$PWD/dist"
+          PACKAGE_NAME="${{ steps.meta.outputs.package_name }}"
+          PACKAGE_VERSION="${{ steps.meta.outputs.package_version }}"
+          PKG_ROOT="$DIST_DIR/debian"
+          INSTALL_PREFIX="$PKG_ROOT/opt/${PACKAGE_NAME}"
+          BIN_DIR="$PKG_ROOT/usr/local/bin"
+
+          rm -rf "$PKG_ROOT"
+          mkdir -p "$INSTALL_PREFIX" "$BIN_DIR" "$PKG_ROOT/DEBIAN"
+
+          cp install_apps.sh "$INSTALL_PREFIX/install_apps.sh"
+          cp -r lib "$INSTALL_PREFIX/lib"
+          cp README.md "$INSTALL_PREFIX/README.md"
+
+          cat <<'EOF' > "$BIN_DIR/${PACKAGE_NAME}"
+#!/bin/bash
+exec /opt/${PACKAGE_NAME}/install_apps.sh "$@"
+EOF
+          chmod 755 "$BIN_DIR/${PACKAGE_NAME}"
+          chmod 755 "$INSTALL_PREFIX/install_apps.sh"
+
+          INSTALLED_SIZE=$(du -sk "$INSTALL_PREFIX" "$BIN_DIR" | awk '{total+=$1} END {print total}')
+
+          cat <<EOF > "$PKG_ROOT/DEBIAN/control"
+Package: ${PACKAGE_NAME}
+Version: ${PACKAGE_VERSION}
+Section: utils
+Priority: optional
+Architecture: all
+Depends: bash, wget, curl, dpkg
+Maintainer: Axxon Automation <support@example.com>
+Installed-Size: ${INSTALLED_SIZE}
+Description: Automated installer for Chrome, Slack, and Opera on Linux Mint.
+ This package installs the automation script under /opt/${PACKAGE_NAME}
+ and provides a launcher at /usr/local/bin/${PACKAGE_NAME}.
+EOF
+
+          dpkg-deb --build "$PKG_ROOT" "${DIST_DIR}/${PACKAGE_NAME}_${PACKAGE_VERSION}_all.deb"
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
@@ -41,7 +82,6 @@ jobs:
           tag_name: ${{ steps.meta.outputs.tag_name }}
           name: ${{ steps.meta.outputs.release_name }}
           files: |
-            dist/axx-install-scripts.tar.gz
-            dist/axx-install-scripts.zip
+            dist/${{ steps.meta.outputs.package_name }}_${{ steps.meta.outputs.package_version }}_all.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
