@@ -9,26 +9,36 @@ source "$SCRIPT_DIR/lib/logging.sh"
 source "$SCRIPT_DIR/lib/helpers.sh"
 
 info() {
-    log_and_print "INFO" "$GREEN" "$1"
+    log_and_print "INFO" "${BOLD}${BRIGHT_GREEN}" "$1"
 }
 
 warn() {
-    log_and_print "WARNING" "$YELLOW" "$1"
+    log_and_print "WARNING" "${BOLD}${BRIGHT_YELLOW}" "$1"
 }
 
 error_msg() {
-    log_and_print "ERROR" "$RED" "$1"
+    log_and_print "ERROR" "${BOLD}${BRIGHT_RED}" "$1"
+}
+
+section() {
+    local title="$1"
+    printf "\n"
+    echo -e "${BOLD}${BRIGHT_CYAN}┌──────────────────────────────────────────────────────────┐${NC}"
+    printf "${BOLD}${BRIGHT_CYAN}│ %-52s │${NC}\n" "$title"
+    echo -e "${BOLD}${BRIGHT_CYAN}└──────────────────────────────────────────────────────────┘${NC}"
+    printf "\n"
 }
 
 center_message() {
     local message="$1"
+    local color="${2:-${BOLD}${BRIGHT_GREEN}}"
     local cols
     cols=$(tput cols 2>/dev/null || echo 80)
     local padding=$(( (cols - ${#message}) / 2 ))
     if (( padding > 0 )); then
-        printf "%*s%s\n" "$padding" "" "$message"
+        printf "%*s%s%s%s\n" "$padding" "" "$color" "$message" "$NC"
     else
-        echo "$message"
+        echo -e "${color}${message}${NC}"
     fi
 }
 
@@ -51,10 +61,12 @@ main() {
     require_root
     init_logging "$SCRIPT_DIR"
 
+    center_message "${BOLD}${BRIGHT_WHITE}Axxon Automation Installer${NC}" "${BOLD}${BRIGHT_WHITE}"
     info "Starting installer for Chrome, Slack, and Opera..."
 
     prepare_environment
 
+    section "Download & Installation Staging"
     declare -A urls=(
         [Google_Chrome]="https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
         [Slack]="https://downloads.slack-edge.com/desktop-releases/linux/x64/4.46.101/slack-desktop-4.46.101-amd64.deb"
@@ -69,14 +81,17 @@ main() {
 
     info "All downloads will be stored in $DOWNLOAD_DIR"
 
+    section "Google Chrome"
     download_and_install "Google Chrome" "${urls[Google_Chrome]}" "${files[Google_Chrome]}"
+    section "Slack"
     download_and_install "Slack" "${urls[Slack]}" "${files[Slack]}"
+    section "Opera"
     download_and_install "Opera" "${urls[Opera]}" "${files[Opera]}"
 
     info "Installation steps completed."
     local done_message="ALL DONE!"
     printf "\n"
-    center_message "${GREEN}${done_message}${NC}"
+    center_message "$done_message"
     printf "\n"
     log_summary_line "All applications installed successfully."
 }
