@@ -61,7 +61,7 @@ main() {
     require_root
     init_logging "$SCRIPT_DIR"
 
-    center_message "${BOLD}${BRIGHT_WHITE}Axxon Automation Installer${NC}" "${BOLD}${BRIGHT_WHITE}"
+    center_message "Axxon Automation Installer" "${BOLD}${BRIGHT_WHITE}"
     info "Starting installer for Chrome, Slack, and Opera..."
 
     prepare_environment
@@ -91,7 +91,7 @@ main() {
     info "Installation steps completed."
     local done_message="ALL DONE!"
     printf "\n"
-    center_message "$done_message"
+    center_message "$done_message" "${BOLD}${BRIGHT_GREEN}"
     printf "\n"
     log_summary_line "All applications installed successfully."
 }

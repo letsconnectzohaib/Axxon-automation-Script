@@ -1,0 +1,36 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build assets and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up workspace paths
+        run: |
+          mkdir -p dist
+
+      - name: Package installer
+        run: |
+          tar czf dist/axx-install-scripts.tar.gz install_apps.sh lib README.md .gitignore
+          zip -r dist/axx-install-scripts.zip install_apps.sh lib README.md .gitignore
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/axx-install-scripts.tar.gz
+            dist/axx-install-scripts.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
