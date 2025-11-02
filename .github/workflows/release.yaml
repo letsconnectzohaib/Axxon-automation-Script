@@ -45,13 +45,13 @@ jobs:
           cp -r lib "$INSTALL_ROOT/"
           chmod +x "$INSTALL_ROOT/install_apps.sh"
 
-          cat <<EOF > "$BIN_DIR/$BINARY_NAME"
+          cat > "$BIN_DIR/$BINARY_NAME" << 'EOL'
 #!/bin/bash
-exec /$INSTALL_DIR/install_apps.sh "$@"
-EOF
+exec /opt/axxon-download-script/install_apps.sh "$@"
+EOL
           chmod +x "$BIN_DIR/$BINARY_NAME"
 
-          cat <<EOF > "$CONTROL_DIR/control"
+          cat > "$CONTROL_DIR/control" << EOL
 Package: $PACKAGE_NAME
 Version: ${VERSION#v}
 Section: utils
@@ -60,7 +60,7 @@ Architecture: all
 Maintainer: $MAINTAINER
 Depends: wget, apt, dpkg
 Description: Automated installer for Chrome, Slack, and Opera on Ubuntu-based systems.
-EOF
+EOL
 
           dpkg-deb --build "$BUILD_ROOT" "dist/${PACKAGE_NAME}_${VERSION#v}_all.deb"
 
