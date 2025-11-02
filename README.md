@@ -45,9 +45,22 @@ Automated installer for Google Chrome, Slack, and Opera on Linux Mint (and other
 - Logs are created under `./logs/` alongside the installer script.
 - Downloaded `.deb` files are stored in `~/Downloads`.
 
+## Debian Package & Releases
+
+- The current version is stored in the top-level `VERSION` file.
+- Run `./scripts/build_deb.sh` to produce `dist/axxondl-installer_<version>_amd64.deb`.
+- Installing the package places the runtime under `/usr/lib/axxondl-installer/` and exposes the command `axxondl-installer`.
+- After installation the post-install hook immediately launches the installer flow so the apps are provisioned right away.
+- GitHub Actions workflow `.github/workflows/release.yml` builds the package and publishes it as a GitHub Release asset whenever `main` is updated.
+
 ## Updating Versions
 
 To update any application version, edit the URL and filename in the `urls` and `files` maps inside `install_apps.sh`.
+
+When releasing a new Debian package:
+1. Update the `VERSION` file (e.g., `1.1.0`).
+2. Commit the changes and push to `main`.
+3. The workflow will tag `v<version>` and upload the generated `.deb` to the release page.
 
 ## Troubleshooting
 
