@@ -5,9 +5,6 @@ Automated installer for Google Chrome, Slack, and Opera on Linux Mint (and other
 ## Project Structure
 ```
 .
-├── .github/
-│   └── workflows/
-│       └── release.yaml     # GitHub Actions workflow for building Debian packages
 ├── install_apps.sh         # Main entry point
 └── lib
     ├── colors.sh           # ANSI color definitions
@@ -47,32 +44,6 @@ Automated installer for Google Chrome, Slack, and Opera on Linux Mint (and other
 
 - Logs are created under `./logs/` alongside the installer script.
 - Downloaded `.deb` files are stored in `~/Downloads`.
-
-## GitHub Actions Workflow
-
-This repository includes a GitHub Actions workflow that automatically:
-
-1. Builds a Debian package on every push
-2. Creates a new GitHub release with a timestamp-based version (e.g., v20231102043400)
-3. Attaches the Debian package to the release
-
-The workflow is configured in `.github/workflows/release.yaml`.
-
-### Installing the Debian Package
-
-After a successful build, you can install the package using:
-
-```bash
-# Download the latest .deb file from GitHub Releases
-# Replace VERSION with the actual version number
-wget https://github.com/your-username/your-repo/releases/download/vVERSION/axxon-download-script_VERSION_all.deb
-
-# Install the package
-sudo dpkg -i axxon-download-script_VERSION_all.deb
-
-# Run the installer
-axxon-download
-```
 
 ## Updating Versions
 
