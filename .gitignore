@@ -7,5 +7,9 @@ logs/
 *.swp
 *.bak
 
+# Build artifacts
+build/
+dist/
+
 # macOS metadata
 .DS_Store

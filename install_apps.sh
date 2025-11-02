@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="$(readlink -f "$0")"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/logging.sh"
