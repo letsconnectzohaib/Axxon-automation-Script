@@ -9,6 +9,10 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    env:
+      LP_GPG_KEY: ${{ secrets.LP_GPG_KEY }}
+      LP_GPG_PASSPHRASE: ${{ secrets.LP_GPG_PASSPHRASE }}
+      LP_USERNAME: ${{ secrets.LP_USERNAME }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,7 +39,7 @@ jobs:
           echo "version=$next" >> "$GITHUB_OUTPUT"
 
       - name: Install build dependencies
-        run: sudo apt-get update && sudo apt-get install -y devscripts debhelper
+        run: sudo apt-get update && sudo apt-get install -y devscripts debhelper dput gnupg
 
       - name: Build Debian package
         env:
@@ -43,6 +47,21 @@ jobs:
         run: |
           ./scripts/build_deb.sh
           echo "Package: $(ls dist/axxon-automation_*.deb)"
+
+      - name: Sign source packages for Launchpad
+        if: env.LP_GPG_KEY != ''
+        env:
+          GNUPGHOME: /tmp/gnupg
+        run: |
+          mkdir -p "$GNUPGHOME"
+          chmod 700 "$GNUPGHOME"
+          printf '%s' "$LP_GPG_KEY" | gpg --batch --import
+          debsign -k "$LP_USERNAME" -p"gpg --batch --pinentry-mode loopback --passphrase $LP_GPG_PASSPHRASE" ../axxon-automation_*_source.changes
+
+      - name: Upload to Launchpad PPA
+        if: env.LP_GPG_KEY != ''
+        run: |
+          dput ppa:letsconnectzohaib/axxon ../axxon-automation_*_source.changes
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
