@@ -1,0 +1,3 @@
+#!/bin/sh
+# Wrapper binary to launch the packaged installer from /usr/lib/axxon-automation.
+exec /usr/lib/axxon-automation/install_apps.sh "$@"

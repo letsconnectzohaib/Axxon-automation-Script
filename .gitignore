@@ -10,6 +10,9 @@ logs/
 # Build artifacts
 build/
 dist/
+debian/.debhelper/
+debian/files
+debian/tmp/
 
 # macOS metadata
 .DS_Store

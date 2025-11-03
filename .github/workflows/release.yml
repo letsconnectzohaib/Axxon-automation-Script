@@ -19,18 +19,29 @@ jobs:
         run: |
           git fetch --tags --quiet
           latest=$(git tag --sort=-v:refname | head -n 1)
-          if [[ -z "$latest" ]]; then
-            next="1.0.0"
+          if [ -z "$latest" ]; then
+            next="1.0-1"
           else
-            IFS='.' read -r major minor patch <<< "${latest#v}"
-            patch=$((patch + 1))
-            next="$major.$minor.$patch"
+            version=${latest#v}
+            base=${version%-*}
+            rev=${version##*-}
+            if [ -z "$base" ] || [ "$base" = "$version" ]; then
+              base="$version"
+              rev="0"
+            fi
+            rev=$((rev + 1))
+            next="$base-$rev"
           fi
-          echo "version=$next" >> $GITHUB_OUTPUT
+          echo "version=$next" >> "$GITHUB_OUTPUT"
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y devscripts debhelper
 
       - name: Build Debian package
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          PACKAGE_VERSION=${{ steps.version.outputs.version }} ./scripts/build_deb.sh
+          ./scripts/build_deb.sh
           echo "Package: $(ls dist/axxon-automation_*.deb)"
 
       - name: Publish Release

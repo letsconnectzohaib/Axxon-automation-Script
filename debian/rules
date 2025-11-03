@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+# Debian packaging rules for axxon-automation.
+
+%:
+	dh $@ --with=systemd
+
+override_dh_auto_install:
+	# Use our custom build script to populate debian/tmp
+	PACKAGE_VERSION=$(DEB_VERSION_UPSTREAM)-$(DEB_VERSION_REVISION) scripts/build_deb.sh
+	# Install runtime files into debian/axxon-automation
+	mkdir -p debian/axxon-automation/usr/lib/axxon-automation
+	cp -a build/axxon-automation/usr/lib/axxon-automation/* debian/axxon-automation/usr/lib/axxon-automation/
+	install -Dm0755 scripts/axxon-automation debian/axxon-automation/usr/bin/axxon-automation
+
+override_dh_auto_clean:
+	rm -rf build dist
+	rm -f debian/axxon-automation/usr/bin/axxon-automation
+	rm -rf debian/axxon-automation/usr/lib/axxon-automation
+	dh_auto_clean

@@ -1,0 +1,16 @@
+Source: axxon-automation
+Section: utils
+Priority: optional
+Maintainer: Mr. Zohaib <letsconnectzohaib@gmail.com>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13)
+Homepage: https://github.com/letsconnectzohaib/Axxon-automation-Script
+Rules-Requires-Root: no
+
+Package: axxon-automation
+Architecture: all
+Depends: ${misc:Depends}, bash, wget, curl, dpkg, apt
+Description: Automation installer for Linux Mint / Ubuntu systems
+ This package installs the Axxon automation runtime that provisions
+ Google Chrome, Slack, and Opera with progress logging, ensuring a
+ consistent setup for managed Linux Mint and Ubuntu environments.

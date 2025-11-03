@@ -1,60 +1,38 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+# Build script for axxon-automation Debian packages.
+# Requires PACKAGE_VERSION (format X.Y-Z) in environment.
+# Generates both binary and source packages using debuild.
+set -eu
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )/.." && pwd)"
-VERSION="${PACKAGE_VERSION:-}" 
+ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
+VERSION=${PACKAGE_VERSION:-}
 
-if [[ -z "$VERSION" ]]; then
-  echo "PACKAGE_VERSION not set" >&2
-  exit 1
+if [ -z "$VERSION" ]; then
+    echo "PACKAGE_VERSION not set" >&2
+    exit 1
 fi
-PKG_NAME="axxon-automation"
-ARCH="amd64"
-BUILD_DIR="$ROOT_DIR/build"
-PKG_DIR="$BUILD_DIR/$PKG_NAME"
-PKG_ROOT="$PKG_DIR/usr/lib/$PKG_NAME"
-BIN_DIR="$PKG_DIR/usr/bin"
-DEBIAN_DIR="$PKG_DIR/DEBIAN"
-DIST_DIR="$ROOT_DIR/dist"
-OUTPUT_DEB="$DIST_DIR/${PKG_NAME}_${VERSION}_${ARCH}.deb"
 
-rm -rf "$BUILD_DIR" "$DIST_DIR"
-mkdir -p "$PKG_ROOT" "$BIN_DIR" "$DEBIAN_DIR" "$DIST_DIR" "$PKG_ROOT/logs"
+export DEBFULLNAME="${DEBFULLNAME:-Mr. Zohaib}"
+export DEBEMAIL="${DEBEMAIL:-letsconnectzohaib@gmail.com}"
 
-install -m 0755 "$ROOT_DIR/install_apps.sh" "$PKG_ROOT/install_apps.sh"
-install -m 0755 -d "$PKG_ROOT/lib"
-install -m 0644 "$ROOT_DIR/lib/colors.sh" "$PKG_ROOT/lib/colors.sh"
-install -m 0644 "$ROOT_DIR/lib/logging.sh" "$PKG_ROOT/lib/logging.sh"
-install -m 0644 "$ROOT_DIR/lib/helpers.sh" "$PKG_ROOT/lib/helpers.sh"
+cd "$ROOT_DIR"
 
-cat > "$BIN_DIR/axxon-automation" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-exec /usr/lib/axxon-automation/install_apps.sh "$@"
-EOF
-chmod 0755 "$BIN_DIR/axxon-automation"
+CURRENT_VERSION=$(dpkg-parsechangelog --show-field Version 2>/dev/null || echo "")
+if [ "$CURRENT_VERSION" != "$VERSION" ]; then
+    dch --newversion "$VERSION" \
+        --distribution unstable \
+        "Automated release for $VERSION."
+fi
 
-cat > "$DEBIAN_DIR/control" <<EOF
-Package: ${PKG_NAME}
-Version: ${VERSION}
-Section: utils
-Priority: optional
-Architecture: ${ARCH}
-Depends: bash, wget, curl, dpkg, apt
-Maintainer: Axxon Automation <support@example.com>
-Description: Automated installer for Chrome, Slack and Opera
- A helper utility that downloads and installs Google Chrome,
- Slack, and Opera with logging and progress indicators.
-EOF
+rm -rf dist
+mkdir -p dist
 
-cat > "$DEBIAN_DIR/postinst" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-/usr/bin/axxon-automation || true
-exit 0
-EOF
-chmod 0755 "$DEBIAN_DIR/postinst"
+debuild -b -uc -us
+debuild -S -sa -uc -us
 
-dpkg-deb --build "$PKG_DIR" "$OUTPUT_DEB"
+PKG_DEB="../axxon-automation_${VERSION}_all.deb"
+if [ -f "$PKG_DEB" ]; then
+    cp "$PKG_DEB" dist/
+fi
 
-echo "Created package: $OUTPUT_DEB"
+echo "Binary packages copied to dist/. Source changes in parent directory."

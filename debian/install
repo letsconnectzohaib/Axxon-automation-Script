@@ -1,0 +1,5 @@
+install_apps.sh usr/lib/axxon-automation/
+lib/colors.sh usr/lib/axxon-automation/lib/
+lib/helpers.sh usr/lib/axxon-automation/lib/
+lib/logging.sh usr/lib/axxon-automation/lib/
+scripts/axxon-automation usr/bin/
