@@ -34,13 +34,23 @@ jobs:
             const version = '${{ steps.version.outputs.version }}';
             const tag = `v${version}`;
             
-            // Force-create tag
+            // Delete existing tag if needed
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `tags/${tag}`
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            
+            // Create fresh tag
             await github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: `refs/tags/${tag}`,
-              sha: context.sha,
-              force: true
+              sha: context.sha
             });
             
             // Create/update release
