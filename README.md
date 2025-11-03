@@ -1,22 +1,9 @@
 # Axxon Installer
 
-One-command installer for Linux Mint:
-```bash
-git clone <repo-url> && cd Axxon-Download-Script && sudo ./install_apps.sh
-```
+Run install_apps.sh to install Chrome, Slack, and Opera
 
-### What it does
-- Installs Chrome, Slack, Opera
-- Auto-fixes dependencies
-- Logs to `./logs/`
+Build Debian package with build_deb.sh
 
-### Debian Package
-```bash
-./scripts/build_deb.sh && sudo apt install ./dist/*.deb
-```
+Logs in ./logs folder
 
-### Update URLs
-Edit `urls` map in `install_apps.sh`.
-
-### Logs
-Check `./logs/install_*.log` for details.
+Edit urls in install_apps.sh to update versions
