@@ -26,9 +26,9 @@ jobs:
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}-${{ github.run_number }}
           target_commitish: ${{ github.sha }}
-          name: "Axxon Automation v${{ steps.version.outputs.version }}"
+          name: "Axxon Automation v${{ steps.version.outputs.version }} (build ${{ github.run_number }})"
           body: |
             Automated installer package for:
             - Google Chrome
