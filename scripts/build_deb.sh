@@ -12,6 +12,11 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
+UPSTREAM_VERSION=${VERSION%-*}
+if [ "$UPSTREAM_VERSION" = "$VERSION" ]; then
+    UPSTREAM_VERSION=$VERSION
+fi
+
 export DEBFULLNAME="${DEBFULLNAME:-Mr. Zohaib}"
 export DEBEMAIL="${DEBEMAIL:-letsconnectzohaib@gmail.com}"
 
@@ -20,12 +25,18 @@ cd "$ROOT_DIR"
 CURRENT_VERSION=$(dpkg-parsechangelog --show-field Version 2>/dev/null || echo "")
 if [ "$CURRENT_VERSION" != "$VERSION" ]; then
     dch --newversion "$VERSION" \
-        --distribution unstable \
+        --distribution noble \
         "Automated release for $VERSION."
 fi
 
 rm -rf dist
 mkdir -p dist
+
+ORIG_TAR="../axxon-automation_${UPSTREAM_VERSION}.orig.tar.gz"
+if [ ! -f "$ORIG_TAR" ]; then
+    git -C "$ROOT_DIR" archive --format=tar --prefix="axxon-automation-${UPSTREAM_VERSION}/" HEAD \
+        | gzip -9 > "$ORIG_TAR"
+fi
 
 debuild -b -uc -us
 debuild -S -sa -uc -us
