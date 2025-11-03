@@ -67,3 +67,34 @@ When releasing a new Debian package:
 - Ensure you run the script with root privileges; otherwise it will exit immediately.
 - If a package installation fails, check the corresponding log file for details.
 - The script uses `apt-get install -f -y` to resolve missing dependencies automatically.
+
+---
+
+## ❗ Troubleshooting
+
+### Common Issues
+
+- **Permission denied**: Run with `sudo` or as root.
+- **Download failures**: Check internet connection and update URLs in `install_apps.sh`.
+- **Installation errors**: Run `sudo apt-get install -f` to fix dependencies manually.
+
+### Logs
+
+Detailed logs are written to:
+- Standalone mode: `./logs/install_<timestamp>.log`
+- Debian package: `/usr/lib/axxondl-installer/logs/install_<timestamp>.log`
+
+---
+
+## 🚀 Getting Help
+
+For support, open an issue with:
+- The log file from the failed run
+- Your Linux distribution version (`lsb_release -a`)
+- Any error messages shown in the terminal
+
+---
+
+## 📜 License
+
+MIT Licensed. See [LICENSE](LICENSE) for details.
