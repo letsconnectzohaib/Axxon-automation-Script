@@ -1,9 +1,8 @@
-# Axxon Installer
+# **Axxon Installer**  
 
-Run install_apps.sh to install Chrome, Slack, and Opera
+▶ **Run:** `install_apps.sh` *(Chrome, Slack, Opera)*  
+▶ **Build:** `build_deb.sh` *(Debian package)*  
+▶ **Logs:** `./logs/` folder  
+▶ **Update:** Edit `urls` in script
 
-Build Debian package with build_deb.sh
-
-Logs in ./logs folder
-
-Edit urls in install_apps.sh to update versions
+*No sudo—run as root*
