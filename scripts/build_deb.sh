@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )/.." && pwd)"
 VERSION="$(cat "$ROOT_DIR/VERSION")"
-PKG_NAME="axxondl-installer"
+PKG_NAME="axxon-automation"
 ARCH="amd64"
 BUILD_DIR="$ROOT_DIR/build"
 PKG_DIR="$BUILD_DIR/$PKG_NAME"
@@ -22,12 +22,12 @@ install -m 0644 "$ROOT_DIR/lib/colors.sh" "$PKG_ROOT/lib/colors.sh"
 install -m 0644 "$ROOT_DIR/lib/logging.sh" "$PKG_ROOT/lib/logging.sh"
 install -m 0644 "$ROOT_DIR/lib/helpers.sh" "$PKG_ROOT/lib/helpers.sh"
 
-cat > "$BIN_DIR/axxondl-installer" <<'EOF'
+cat > "$BIN_DIR/axxon-automation" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-exec /usr/lib/axxondl-installer/install_apps.sh "$@"
+exec /usr/lib/axxon-automation/install_apps.sh "$@"
 EOF
-chmod 0755 "$BIN_DIR/axxondl-installer"
+chmod 0755 "$BIN_DIR/axxon-automation"
 
 cat > "$DEBIAN_DIR/control" <<EOF
 Package: ${PKG_NAME}
@@ -37,7 +37,7 @@ Priority: optional
 Architecture: ${ARCH}
 Depends: bash, wget, curl, dpkg, apt
 Maintainer: Axxon Automation <support@example.com>
-Description: Automated installer for Chrome, Slack, and Opera
+Description: Automated installer for Chrome, Slack and Opera
  A helper utility that downloads and installs Google Chrome,
  Slack, and Opera with logging and progress indicators.
 EOF
@@ -45,7 +45,7 @@ EOF
 cat > "$DEBIAN_DIR/postinst" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-/usr/bin/axxondl-installer || true
+/usr/bin/axxon-automation || true
 exit 0
 EOF
 chmod 0755 "$DEBIAN_DIR/postinst"

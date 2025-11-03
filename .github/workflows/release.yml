@@ -45,9 +45,8 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          files: dist/*.deb
+          files: dist/axxon-automation_*.deb
           draft: false
           generate_release_notes: true
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
