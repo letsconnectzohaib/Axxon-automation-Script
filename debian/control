@@ -9,7 +9,7 @@ Rules-Requires-Root: no
 
 Package: axxon-automation
 Architecture: all
-Depends: ${misc:Depends}, bash, wget, curl, dpkg, apt
+Depends: ${misc:Depends}, ca-certificates, wget, curl, libtinfo6
 Description: Automation installer for Linux Mint / Ubuntu systems
  This package installs the Axxon automation runtime that provisions
  Google Chrome, Slack, and Opera with progress logging, ensuring a
