@@ -36,7 +36,7 @@ Automated installer for Google Chrome, Slack, and Opera on Linux Mint (and other
    - Google Chrome (`google-chrome-stable_current_amd64.deb`)
    - Slack (`slack-desktop-4.46.101-amd64.deb`)
    - Opera (`opera-stable_123.0.5669.23_amd64.deb`)
-dependencies with `apt-get install -f -y` when necessary.
+5. Installs each package via `dpkg -i`, auto-fixing dependencies with `apt-get install -f -y` when necessary.
 6. Logs every step while also displaying colored status messages in the terminal.
 7. Prints a centered **ALL DONE!** message when everything completes.
 

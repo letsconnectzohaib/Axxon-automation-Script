@@ -73,6 +73,6 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          allow_update: true
+          overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
