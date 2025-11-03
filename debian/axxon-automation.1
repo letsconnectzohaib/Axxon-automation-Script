@@ -1,0 +1,32 @@
+.TH AXXON-AUTOMATION 1 "November 2025" "Axxon Automation"
+.SH NAME
+axxon-automation \- provision Chrome, Slack, and Opera on Mint/Ubuntu systems
+.SH SYNOPSIS
+.B axxon-automation
+
+.SH DESCRIPTION
+.B axxon-automation
+is a non-interactive setup utility that downloads and installs
+Google Chrome, Slack, and Opera with logging and colored progress output.
+It is intended for IT-managed Linux Mint and Ubuntu environments.
+
+The tool must be run with root privileges. Logs are written to
+.BR /usr/lib/axxon-automation/logs/ .
+
+.SH OPTIONS
+The command currently accepts no arguments.
+
+.SH EXIT STATUS
+.TP
+0
+Success.
+.TP
+non-zero
+An error occurred during download or installation.
+
+.SH AUTHOR
+Muhammad Zohaib <letsconnectzohaib@gmail.com>
+
+.SH SEE ALSO
+.BR apt (8),
+.BR dpkg (1)
