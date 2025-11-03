@@ -14,13 +14,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set version
+      - name: Determine next version
         id: version
-        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+        run: |
+          git fetch --tags --quiet
+          latest=$(git tag --sort=-v:refname | head -n 1)
+          if [[ -z "$latest" ]]; then
+            next="1.0.0"
+          else
+            IFS='.' read -r major minor patch <<< "${latest#v}"
+            patch=$((patch + 1))
+            next="$major.$minor.$patch"
+          fi
+          echo "version=$next" >> $GITHUB_OUTPUT
 
       - name: Build Debian package
         run: |
-          ./scripts/build_deb.sh
+          PACKAGE_VERSION=${{ steps.version.outputs.version }} ./scripts/build_deb.sh
           echo "Package: $(ls dist/axxon-automation_*.deb)"
 
       - name: Publish Release

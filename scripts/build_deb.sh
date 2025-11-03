@@ -2,7 +2,12 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )/.." && pwd)"
-VERSION="$(cat "$ROOT_DIR/VERSION")"
+VERSION="${PACKAGE_VERSION:-}" 
+
+if [[ -z "$VERSION" ]]; then
+  echo "PACKAGE_VERSION not set" >&2
+  exit 1
+fi
 PKG_NAME="axxon-automation"
 ARCH="amd64"
 BUILD_DIR="$ROOT_DIR/build"
