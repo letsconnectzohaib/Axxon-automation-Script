@@ -32,19 +32,41 @@ jobs:
         with:
           script: |
             const version = '${{ steps.version.outputs.version }}';
+            const tag = `v${version}`;
+            
+            // Force-create tag
+            await github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/${tag}`,
+              sha: context.sha,
+              force: true
+            });
+            
+            // Create/update release
             try {
               await github.rest.repos.createRelease({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                tag_name: `v${version}`,
-                name: `v${version}`,
+                tag_name: tag,
+                name: tag,
                 draft: false,
                 generate_release_notes: true
               });
             } catch (error) {
-              if (error.status === 422 && error.response.data.errors.some(e => e.code === 'already_exists')) {
-                console.log(`Release v${version} already exists - skipping`);
-                core.setOutput('release_skipped', 'true');
+              if (error.status === 422) {
+                const release = await github.rest.repos.getReleaseByTag({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag: tag
+                });
+                await github.rest.repos.updateRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: release.data.id,
+                  name: tag,
+                  draft: false
+                });
               } else {
                 throw error;
               }
