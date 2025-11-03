@@ -1,8 +1,9 @@
 #!/usr/bin/make -f
 # Debian packaging rules for axxon-automation.
+# Compat level 13 already pulls in necessary helpers; no systemd addon required.
 
 %:
-	dh $@ --with=systemd
+	dh $@
 
 override_dh_auto_install:
 	# Use our custom build script to populate debian/tmp
