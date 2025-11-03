@@ -1,4 +1,4 @@
-name: Build and Release Debian Package
+name: Release Axxon Automation
 
 on:
   push:
@@ -7,46 +7,32 @@ on:
 
 jobs:
   release:
-    name: Build & publish .deb
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      packages: write
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up version
+      - name: Set version
         id: version
-        run: echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
 
-      - name: Build Debian package
+      - name: Build package
         run: ./scripts/build_deb.sh
 
-      - name: Clean Existing Tags
-        run: |
-          git fetch --tags
-          git push origin --delete $(git tag -l) || true
-          git tag -d $(git tag -l) || true
-
-      - name: Create New Tag
+      - name: Tag release
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git tag -a "v${{ steps.version.outputs.version }}" -m "Version ${{ steps.version.outputs.version }}"
-          git push origin "v${{ steps.version.outputs.version }}"
+          git tag -fa "v${{ steps.version.outputs.version }}" -m "Version ${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}" --force
 
-      - name: Publish Release
+      - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
+          name: "Axxon Automation v${{ steps.version.outputs.version }}"
           files: dist/axxon-automation_*.deb
           draft: false
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: false
