@@ -1,0 +1,48 @@
+name: Release Axxon Automation
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - '!v*'  # Skip tag pushes to avoid loops
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set version
+        id: version
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Build Debian package
+        run: |
+          ./scripts/build_deb.sh
+          echo "Package: $(ls dist/axxon-automation_*.deb)"
+
+      - name: Create release tag
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git tag -fa "v${{ steps.version.outputs.version }}" \
+                   -m "Axxon Automation v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}" --force
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: "Axxon Automation v${{ steps.version.outputs.version }}"
+          body: |
+            Automated installer package for:
+            - Google Chrome
+            - Slack
+            - Opera
+          files: dist/axxon-automation_*.deb
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          overwrite_files: true
