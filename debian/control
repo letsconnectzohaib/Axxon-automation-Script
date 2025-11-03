@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Mr. Zohaib <letsconnectzohaib@gmail.com>
 Standards-Version: 4.6.2
-Build-Depends: debhelper-compat (= 13)
+Build-Depends: debhelper (>= 13)
 Homepage: https://github.com/letsconnectzohaib/Axxon-automation-Script
 Rules-Requires-Root: no
 
