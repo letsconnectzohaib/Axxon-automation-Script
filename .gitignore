@@ -16,3 +16,6 @@ debian/tmp/
 
 # macOS metadata
 .DS_Store
+
+# secrets
+secrets/
