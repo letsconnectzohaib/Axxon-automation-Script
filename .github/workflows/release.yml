@@ -27,70 +27,27 @@ jobs:
       - name: Build Debian package
         run: ./scripts/build_deb.sh
 
-      - name: Tag Release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const version = '${{ steps.version.outputs.version }}';
-            const tag = `v${version}`;
-            
-            // Delete existing tag if needed
-            try {
-              await github.rest.git.deleteRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: `tags/${tag}`
-              });
-            } catch (error) {
-              if (error.status !== 404) throw error;
-            }
-            
-            // Create fresh tag
-            await github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: `refs/tags/${tag}`,
-              sha: context.sha
-            });
-            
-            // Create/update release
-            try {
-              await github.rest.repos.createRelease({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag_name: tag,
-                name: tag,
-                draft: false,
-                generate_release_notes: true
-              });
-            } catch (error) {
-              if (error.status === 422) {
-                const release = await github.rest.repos.getReleaseByTag({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  tag: tag
-                });
-                await github.rest.repos.updateRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  release_id: release.data.id,
-                  name: tag,
-                  draft: false
-                });
-              } else {
-                throw error;
-              }
-            }
+      - name: Clean Existing Tags
+        run: |
+          git fetch --tags
+          git push origin --delete $(git tag -l) || true
+          git tag -d $(git tag -l) || true
 
-      - name: Publish GitHub Release
+      - name: Create New Tag
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git tag -a "v${{ steps.version.outputs.version }}" -m "Version ${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
           files: dist/*.deb
           draft: false
-          prerelease: false
           generate_release_notes: true
-          overwrite_files: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
