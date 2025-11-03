@@ -32,14 +32,23 @@ jobs:
         with:
           script: |
             const version = '${{ steps.version.outputs.version }}';
-            await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: `v${version}`,
-              name: `v${version}`,
-              draft: false,
-              generate_release_notes: true
-            });
+            try {
+              await github.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: `v${version}`,
+                name: `v${version}`,
+                draft: false,
+                generate_release_notes: true
+              });
+            } catch (error) {
+              if (error.status === 422 && error.response.data.errors.some(e => e.code === 'already_exists')) {
+                console.log(`Release v${version} already exists - skipping`);
+                core.setOutput('release_skipped', 'true');
+              } else {
+                throw error;
+              }
+            }
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
